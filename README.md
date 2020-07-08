@@ -9,6 +9,7 @@ Last updated: 8 July 2020
 minikube start --cpus=4 --memory=8G
 
 kubectl version --short
+# tested OK up to Client v1.18.5 and Server v.1.18.3
 
 # In separate terminal windows
 minikube dashboard
