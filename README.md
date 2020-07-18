@@ -82,6 +82,7 @@ Get the C3 ClusterIP, and append local hosts file with C3 URL on port 9021
 sudo bash -c 'echo $(kubectl get svc controlcenter-0-internal -n confluent --output=jsonpath='{.spec.clusterIP}') controlcenter.confluent.platform.55.demo >> /etc/hosts'
 ```
 
+## Test visibility
 Visit C3, using below username and password
 ```
 open http://controlcenter.confluent.platform.55.demo:9021
@@ -89,7 +90,7 @@ open http://controlcenter.confluent.platform.55.demo:9021
 u/p admin / Developer1
 
 
-Show metrics and messages coming in to Kafka
+Show visibility of metrics and messages coming in to Kafka
 In the C3 URL, navigate to Consumers, `_confluent-controlcenter-0`, `_confluent-metrics`, then Messages
 
 
@@ -97,6 +98,8 @@ Create a new namespace `new-lob`
 ```
 kubectl create namespace new-lob
 ```
+
+## Test Operator namespace segmentation
 
 Show Operator being scoped to the new namespace
 ```
