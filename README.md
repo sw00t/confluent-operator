@@ -1,19 +1,21 @@
-# Confluent Platform 5.5 Operator demo
+# Confluent Platform 5.5 Operator on Minikube demo
 
-Last updated: 8 July 2020
-
+Last updated: 17 July 2020
+Versions tested: minikube v1.11.0, kubernetes v1.18.3, docker 19.03.8
 
 ## Setup Kubernetes
-
 ```
 minikube start --cpus=4 --memory=8G
-
+```
+```
 kubectl version --short
-# tested OK up to Client v1.18.5 and Server v.1.18.3
+```
 
 # In separate terminal windows
+```
 minikube dashboard
-
+```
+```
 sudo minikube tunnel
 ```
 
@@ -66,25 +68,24 @@ kubectl patch serviceaccount default \
 
 ## Wait for CP to start up
 
+# Watch the pods spin up
 ```
-# Watch the Kubernetes dashboard
+watch kubectl get po -n confluen
 ```
 
 ## Validate the installation with Control Center
 
 ```
-echo \
-  $(kubectl get service controlcenter-0-internal \
-      --output=jsonpath={'.status.loadBalancer.ingress[0].ip'} \
-      --namespace=confluent) \
-  controlcenter.confluent.platform.55.demo | sudo tee -a /etc/hosts  # TODO: need to update/correct functionality here. Manual works.
-
-# controlcenter.confluent.platform.55.demo should refer to <controlcenter-0-internal Cluster IP>:9021
-
-open http://controlcenter.confluent.platform.55.demo  # admin / Developer1
-
-# Go to cluster -> topics -> /_confluent-metrics/message-viewer  # TODO: need to validate
+sudo bash -c 'echo $(kubectl get svc controlcenter-0-internal -n confluent --output=jsonpath='{.spec.clusterIP}') controlcenter.confluent.platform.55.demo >> /etc/hosts'
 ```
+```
+open http://controlcenter.confluent.platform.55.demo:9021
+```
+u/p admin / Developer1
+
+
+In the C3 URL, navigate to Consumers, `_confluent-controlcenter-0`, `_confluent-metrics`, then Messages
+
 
 
 ## Confirm Operator is scoped to a single namespace
@@ -97,18 +98,19 @@ helm install confluent-platform \
   --values=/tmp/myvalues.yaml \
   --namespace=new-lob \
   --set zookeeper.enabled=true \
-  --set global.provider.registry.credential.password=${JFROG_PASSWORD} \  # TODO: need to validate docker registry user info
   --set global.injectPullSecret=true
 
 kubectl patch serviceaccount default \
   --namespace=new-lob \
   --patch='{"imagePullSecrets": [{"name": "confluent-docker-registry" }]}'
-
-# Observe in the dashboard no ZooKeeper getting created
+```
+# Observe a new ZooKeeper cluster being created in the new-lob namespace
+```
+kubectl get po -n new-lob
 ```
 
-## Expand Operator to serve all namespaces
 
+## Expand Operator to serve all namespaces
 ```
 helm upgrade confluent-platform \
   $CPOPDIR/helm/confluent-operator/ \
@@ -118,10 +120,12 @@ helm upgrade confluent-platform \
   --set zookeeper.enabled=true \
   --set kafka.enabled=true \
   --set controlcenter.enabled=true \
-  --set operator.namespaced=false \
-  --set global.provider.registry.credential.password=${JFROG_PASSWORD}  # TODO: need to validate docker registry user info
+  --set operator.namespaced=false
+```
 
-# Watch ZooKeeper eventually come up in the dashboard
+# Observe ZooKeeper come up in the dashboard/StatefulSets
+```
+kubectl get po --all-namespaces
 ```
 
 ## Clean up
@@ -133,6 +137,6 @@ minikube delete
 ```
 
 
-## Reference
-# CP Operator QuickStart; scripted/simplified version
+Ref
 https://docs.confluent.io/current/installation/operator/co-quickstart.html
+https://gist.github.com/amitkgupta/e3296bc9b0ed0dfb50248d1d29d680bf
